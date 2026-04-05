@@ -427,6 +427,180 @@ function renderEmailTemplate(template, variables) {
 }
 
 /**
+ * 获取内置邮件模板
+ */
+function getBuiltInTemplate(style) {
+  const templates = {
+    // 渐变紫色（默认）
+    'gradient-purple': `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f7fa;">
+        <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">入群验证</h1>
+          </div>
+          <div style="padding: 40px 30px;">
+            <p style="color: #333; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">您好！</p>
+            <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 0 0 25px 0;">
+              您正在尝试加入 QQ 群：<strong style="color: #667eea;">{groupId}</strong>
+            </p>
+            <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 0 0 15px 0;">
+              您的验证码是：
+            </p>
+            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%); padding: 25px; text-align: center; border-radius: 8px; margin: 25px 0; border: 2px dashed #667eea;">
+              <span style="font-size: 36px; font-weight: bold; color: #667eea; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</span>
+            </div>
+            <p style="color: #999; font-size: 14px; line-height: 1.8; margin: 20px 0;">
+              ⏱️ 验证码有效期：<strong style="color: #667eea;">{expireTime} 秒</strong><br>
+              💡 请在群内输入此验证码完成验证
+            </p>
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 4px;">
+              <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.6;">
+                ⚠️ 温馨提示：如果这不是您的操作，请忽略此邮件。请勿将验证码泄露给他人。
+              </p>
+            </div>
+          </div>
+          <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+            <p style="color: #999; font-size: 12px; margin: 0; line-height: 1.6;">
+              此邮件由系统自动发送，请勿回复<br>
+              © 2026 椰奶机器人
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    
+    // 简约蓝色
+    'simple-blue': `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+        <div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <h2 style="color: #1976d2; margin: 0 0 20px 0;">🔐 入群验证</h2>
+          <p style="color: #666; font-size: 15px; line-height: 1.6;">您好！您正在尝试加入群聊 <strong>{groupId}</strong></p>
+          <div style="background: #e3f2fd; padding: 25px; text-align: center; margin: 25px 0; border-radius: 6px; border-left: 4px solid #1976d2;">
+            <p style="color: #999; margin: 0 0 10px 0; font-size: 14px;">验证码</p>
+            <span style="font-size: 32px; font-weight: bold; color: #1976d2; letter-spacing: 6px; font-family: 'Courier New', monospace;">{code}</span>
+          </div>
+          <p style="color: #999; font-size: 14px; line-height: 1.6;">⏱️ 请在 <strong style="color: #1976d2;">{expireTime} 秒</strong> 内输入验证码完成验证</p>
+          <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            <p style="color: #bbb; font-size: 12px; margin: 0;">此邮件由系统自动发送，请勿回复</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    
+    // 商务卡片
+    'business-card': `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body style="margin: 0; padding: 40px; font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f2f5;">
+        <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden;">
+          <div style="background: #1890ff; padding: 25px; text-align: center;">
+            <h2 style="color: white; margin: 0; font-size: 24px;">欢迎加入</h2>
+          </div>
+          <div style="padding: 30px;">
+            <p style="color: #333; font-size: 16px; margin: 0 0 15px 0;">您正在申请加入群聊</p>
+            <p style="color: #1890ff; font-size: 20px; font-weight: bold; margin: 0 0 25px 0;">{groupId}</p>
+            <div style="background: #f6ffed; border: 2px dashed #52c41a; padding: 25px; text-align: center; margin: 25px 0; border-radius: 8px;">
+              <p style="color: #999; margin: 0 0 10px 0; font-size: 14px;">验证码</p>
+              <span style="font-size: 36px; font-weight: bold; color: #52c41a; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</span>
+            </div>
+            <p style="color: #666; font-size: 14px; text-align: center; margin: 20px 0;">
+              请在 <strong style="color: #1890ff;">{expireTime}秒</strong> 内完成验证
+            </p>
+          </div>
+          <div style="background: #fafafa; padding: 15px; text-align: center; border-top: 1px solid #e8e8e8;">
+            <p style="color: #999; font-size: 12px; margin: 0;">© 2026 椰奶机器人 | 自动发送</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    
+    // 暗色科技
+    'dark-tech': `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body style="margin: 0; padding: 40px; font-family: 'Microsoft YaHei', sans-serif; background-color: #1a1a1a;">
+        <div style="max-width: 550px; margin: 0 auto; background: #2d2d2d; border-radius: 10px; padding: 35px; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+          <h1 style="color: #00d4ff; text-align: center; margin: 0 0 25px 0; font-size: 26px;">🎯 入群验证</h1>
+          <div style="background: #1a1a1a; padding: 25px; border-radius: 8px; margin: 20px 0; border: 1px solid #404040;">
+            <p style="color: #b0b0b0; margin: 0 0 10px 0; font-size: 14px;">目标群聊</p>
+            <p style="color: #00d4ff; margin: 0; font-size: 18px; font-weight: bold;">{groupId}</p>
+          </div>
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="color: #b0b0b0; margin: 0 0 15px 0; font-size: 14px;">您的验证码</p>
+            <div style="background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%); padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 12px rgba(0,212,255,0.3);">
+              <span style="font-size: 40px; font-weight: bold; color: white; letter-spacing: 10px; font-family: 'Courier New', monospace;">{code}</span>
+            </div>
+          </div>
+          <div style="background: #3d3d3d; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: center;">
+            <p style="color: #ffd700; margin: 0; font-size: 14px;">⏰ 有效期：{expireTime}秒</p>
+          </div>
+          <p style="color: #666; font-size: 12px; text-align: center; margin: 25px 0 0 0;">
+            如果这不是您的操作，请忽略此邮件
+          </p>
+        </div>
+      </body>
+      </html>
+    `,
+    
+    // 清新绿色
+    'fresh-green': `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body style="margin: 0; padding: 40px; font-family: 'Microsoft YaHei', Arial, sans-serif; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+        <div style="max-width: 580px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 6px 20px rgba(76,175,80,0.2); overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 26px;">✨ 入群验证</h1>
+          </div>
+          <div style="padding: 35px 30px;">
+            <p style="color: #2e7d32; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">您好！欢迎加入我们的社区 🎉</p>
+            <div style="background: #f1f8e9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #66bb6a;">
+              <p style="color: #558b2f; margin: 0 0 10px 0; font-size: 14px;">📍 群号</p>
+              <p style="color: #2e7d32; margin: 0; font-size: 18px; font-weight: bold;">{groupId}</p>
+            </div>
+            <p style="color: #666; font-size: 15px; margin: 25px 0 15px 0;">🔑 您的验证码：</p>
+            <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 25px; text-align: center; border-radius: 10px; margin: 20px 0; border: 2px solid #66bb6a;">
+              <span style="font-size: 38px; font-weight: bold; color: #2e7d32; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</span>
+            </div>
+            <div style="background: #fff9c4; padding: 15px; border-radius: 6px; margin: 25px 0; text-align: center;">
+              <p style="color: #f57f17; margin: 0; font-size: 14px;">⏱️ 有效期：<strong>{expireTime} 秒</strong> | 请尽快在群内输入</p>
+            </div>
+          </div>
+          <div style="background: #f1f8e9; padding: 20px; text-align: center; border-top: 1px solid #c8e6c9;">
+            <p style="color: #66bb6a; font-size: 12px; margin: 0;">🌿 椰奶机器人 | 自动发送</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  }
+  
+  return templates[style] || templates['gradient-purple']
+}
+
+/**
  * 发送验证邮件
  */
 async function sendVerificationEmail(toEmail, code, userId, groupId) {
@@ -460,8 +634,9 @@ async function sendVerificationEmail(toEmail, code, userId, groupId) {
   const subject = emailVerify.emailSubject || '入群验证码'
   const renderedSubject = renderEmailTemplate(subject, templateVariables)
   
-  // 渲染HTML邮件内容
-  const htmlTemplate = emailVerify.emailTemplate || getDefaultEmailTemplate()
+  // 获取内置模板并渲染
+  const templateStyle = emailVerify.emailTemplateStyle || 'gradient-purple'
+  const htmlTemplate = getBuiltInTemplate(templateStyle)
   const renderedHtml = renderEmailTemplate(htmlTemplate, templateVariables)
   
   const mailOptions = {
@@ -472,67 +647,6 @@ async function sendVerificationEmail(toEmail, code, userId, groupId) {
   }
   
   await transporter.sendMail(mailOptions)
-}
-
-/**
- * 获取默认邮件模板（备用）
- */
-function getDefaultEmailTemplate() {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f7fa;">
-      <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
-        <!-- 头部 -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">入群验证</h1>
-        </div>
-        
-        <!-- 内容区域 -->
-        <div style="padding: 40px 30px;">
-          <p style="color: #333; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">您好！</p>
-          
-          <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 0 0 25px 0;">
-            您正在尝试加入 QQ 群：<strong style="color: #667eea;">{groupId}</strong>
-          </p>
-          
-          <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 0 0 15px 0;">
-            您的验证码是：
-          </p>
-          
-          <!-- 验证码显示区域 -->
-          <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%); padding: 25px; text-align: center; border-radius: 8px; margin: 25px 0; border: 2px dashed #667eea;">
-            <span style="font-size: 36px; font-weight: bold; color: #667eea; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</span>
-          </div>
-          
-          <p style="color: #999; font-size: 14px; line-height: 1.8; margin: 20px 0;">
-            ⏱️ 验证码有效期：<strong style="color: #667eea;">{expireTime} 秒</strong><br>
-            💡 请在群内输入此验证码完成验证
-          </p>
-          
-          <!-- 提示信息 -->
-          <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 4px;">
-            <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.6;">
-              ⚠️ 温馨提示：如果这不是您的操作，请忽略此邮件。请勿将验证码泄露给他人。
-            </p>
-          </div>
-        </div>
-        
-        <!-- 底部 -->
-        <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
-          <p style="color: #999; font-size: 12px; margin: 0; line-height: 1.6;">
-            此邮件由系统自动发送，请勿回复<br>
-            © 2024 椰奶机器人
-          </p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `
 }
 async function sendMsg(e, msg) {
   const sendMsgFunctions = {

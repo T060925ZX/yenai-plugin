@@ -269,13 +269,19 @@ export default [
     component: "Input"
   },
   {
-    field: "groupAdmin.groupVerify.emailVerify.emailTemplate",
-    label: "HTML邮件模板",
-    bottomHelpMessage: "支持变量：{code}, {groupId}, {groupName}, {userId}, {expireTime}。留空使用默认模板。",
-    component: "GTextarea",
+    field: "groupAdmin.groupVerify.emailVerify.emailTemplateStyle",
+    label: "邮件模板风格",
+    bottomHelpMessage: "选择内置的邮件模板样式",
+    component: "RadioGroup",
+    required: true,
     componentProps: {
-      placeholder: "自定义HTML邮件模板，支持变量替换",
-      rows: 10
+      options: [
+        { label: "渐变紫色（默认）", value: "gradient-purple" },
+        { label: "简约蓝色", value: "simple-blue" },
+        { label: "商务卡片", value: "business-card" },
+        { label: "暗色科技", value: "dark-tech" },
+        { label: "清新绿色", value: "fresh-green" }
+      ]
     }
   }
 ]
