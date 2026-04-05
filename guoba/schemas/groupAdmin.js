@@ -271,7 +271,7 @@ export default [
   {
     field: "groupAdmin.groupVerify.emailVerify.emailTemplateStyle",
     label: "邮件模板风格",
-    bottomHelpMessage: "选择内置的邮件模板样式",
+    bottomHelpMessage: "选择内置的邮件模板样式，选择custom可使用自定义模板",
     component: "RadioGroup",
     required: true,
     componentProps: {
@@ -280,8 +280,18 @@ export default [
         { label: "简约蓝色", value: "simple-blue" },
         { label: "商务卡片", value: "business-card" },
         { label: "暗色科技", value: "dark-tech" },
-        { label: "清新绿色", value: "fresh-green" }
+        { label: "清新绿色", value: "fresh-green" },
+        { label: "自定义模板", value: "custom" }
       ]
+    }
+  },
+  {
+    field: "groupAdmin.groupVerify.emailVerify.customTemplateFile",
+    label: "自定义模板文件名",
+    bottomHelpMessage: "当选择自定义模板时生效，文件放在config目录下。示例参考：email-template-example.html",
+    component: "Input",
+    componentProps: {
+      placeholder: "my-email-template.html"
     }
   }
 ]

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>入群验证</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f7fa;">
+  <!-- 
+    自定义邮件模板示例
+    支持的变量：
+    {code} - 验证码（如：123456）
+    {groupId} - QQ群号
+    {groupName} - 群名称（预留）
+    {userId} - 用户QQ号
+    {expireTime} - 验证码有效期（秒）
+    
+    使用说明：
+    1. 复制此文件并重命名（如：my-template.html）
+    2. 修改HTML内容，使用上述变量
+    3. 在配置文件中设置 emailTemplateStyle: "custom"
+    4. 在配置文件中设置 customTemplateFile: "my-template.html"
+  -->
+  
+  <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+    <!-- 头部区域 -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">🎉 入群验证</h1>
+    </div>
+    
+    <!-- 主要内容区域 -->
+    <div style="padding: 40px 30px;">
+      <!-- 问候语 -->
+      <p style="color: #333; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">您好！</p>
+      
+      <!-- 群信息 -->
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #667eea;">
+        <p style="color: #666; font-size: 14px; margin: 0 0 8px 0;">您正在尝试加入：</p>
+        <p style="color: #667eea; font-size: 18px; font-weight: bold; margin: 0;">QQ群：{groupId}</p>
+      </div>
+      
+      <!-- 验证码说明 -->
+      <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 25px 0 15px 0;">
+        🔑 您的验证码是：
+      </p>
+      
+      <!-- 验证码显示区域 -->
+      <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%); padding: 30px; text-align: center; border-radius: 8px; margin: 25px 0; border: 2px dashed #667eea;">
+        <span style="font-size: 42px; font-weight: bold; color: #667eea; letter-spacing: 10px; font-family: 'Courier New', monospace;">{code}</span>
+      </div>
+      
+      <!-- 有效期提示 -->
+      <div style="text-align: center; margin: 25px 0;">
+        <p style="color: #999; font-size: 14px; line-height: 1.8; margin: 0;">
+          ⏱️ 验证码有效期：<strong style="color: #667eea;">{expireTime} 秒</strong>
+        </p>
+        <p style="color: #999; font-size: 14px; line-height: 1.8; margin: 10px 0 0 0;">
+          💡 请在群内输入此验证码完成验证
+        </p>
+      </div>
+      
+      <!-- 温馨提示 -->
+      <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 30px 0; border-radius: 4px;">
+        <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.6;">
+          ⚠️ 温馨提示：如果这不是您的操作，请忽略此邮件。请勿将验证码泄露给他人。
+        </p>
+      </div>
+    </div>
+    
+    <!-- 底部区域 -->
+    <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+      <p style="color: #999; font-size: 12px; margin: 0 0 5px 0; line-height: 1.6;">
+        此邮件由系统自动发送，请勿回复
+      </p>
+      <p style="color: #bbb; font-size: 11px; margin: 0;">
+        © 2026 椰奶机器人
+      </p>
+    </div>
+  </div>
+</body>
+</html>

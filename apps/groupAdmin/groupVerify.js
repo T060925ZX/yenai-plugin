@@ -3,6 +3,9 @@ import { common, GroupAdmin as Ga } from "../../model/index.js"
 import _ from "lodash"
 import { sleep } from "../../tools/index.js"
 import nodemailer from "nodemailer"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 
 // 全局
 let temp = {}
@@ -385,7 +388,7 @@ async function verifyByEmail(userId, groupId, e) {
     return await e.group.kickMember(userId)
   }, time * 1000)
   
-  const msg = ` 欢迎！\n验证码已发送至：${userEmail}\n请在「${time}」秒内输入验证码\n否则将会被移出群聊`
+  const msg = ` 欢迎！\n验证码已发送至：${userEmail}\n请在「${time}」秒内输入验证码\n否则将会被移出群聊\n💡验证码在QQ搜索 QQ邮箱 中查看`
   
   // 消息发送成功才写入
   if (await sendMsg(e, [ segment.at(userId), msg ])) {
@@ -427,9 +430,49 @@ function renderEmailTemplate(template, variables) {
 }
 
 /**
+ * 加载自定义邮件模板
+ */
+function loadCustomTemplate() {
+  try {
+    const { emailVerify } = Config.groupAdmin.groupVerify
+    const customFile = emailVerify.customTemplateFile || 'my-email-template.html'
+    
+    // 获取当前文件所在目录
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+    
+    // 构建模板文件路径（在 config 目录下）
+    const projectRoot = path.resolve(__dirname, '../..')
+    const templatePath = path.join(projectRoot, 'config', customFile)
+    
+    // 检查文件是否存在
+    if (!fs.existsSync(templatePath)) {
+      logger.warn(`${Log_Prefix}[邮箱验证]自定义模板文件不存在: ${templatePath}`)
+      logger.warn(`${Log_Prefix}[邮箱验证]将使用默认模板`)
+      return getBuiltInTemplate('gradient-purple')
+    }
+    
+    // 读取文件内容
+    const templateContent = fs.readFileSync(templatePath, 'utf-8')
+    logger.mark(`${Log_Prefix}[邮箱验证]已加载自定义模板: ${customFile}`)
+    
+    return templateContent
+  } catch (error) {
+    logger.error(`${Log_Prefix}[邮箱验证]加载自定义模板失败: ${error.message}`)
+    logger.error(`${Log_Prefix}[邮箱验证]将使用默认模板`)
+    return getBuiltInTemplate('gradient-purple')
+  }
+}
+
+/**
  * 获取内置邮件模板
  */
 function getBuiltInTemplate(style) {
+  // 如果是自定义模板，从文件读取
+  if (style === 'custom') {
+    return loadCustomTemplate()
+  }
+  
   const templates = {
     // 渐变紫色（默认）
     'gradient-purple': `
