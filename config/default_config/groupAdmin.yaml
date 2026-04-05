@@ -72,6 +72,63 @@ groupVerify:
     codeLength: 6
     # 最多允许尝试次数
     maxAttempts: 5
+    # 邮件主题（支持变量：{groupId}, {groupName}）
+    emailSubject: "入群验证码 - 请完成验证"
+    # HTML邮件模板（支持变量：{code}, {groupId}, {groupName}, {userId}, {expireTime}）
+    emailTemplate: |
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f7fa;">
+        <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+          <!-- 头部 -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">入群验证</h1>
+          </div>
+          
+          <!-- 内容区域 -->
+          <div style="padding: 40px 30px;">
+            <p style="color: #333; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">您好！</p>
+            
+            <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 0 0 25px 0;">
+              您正在尝试加入 QQ 群：<strong style="color: #667eea;">{groupId}</strong>
+            </p>
+            
+            <p style="color: #666; font-size: 15px; line-height: 1.8; margin: 0 0 15px 0;">
+              您的验证码是：
+            </p>
+            
+            <!-- 验证码显示区域 -->
+            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%); padding: 25px; text-align: center; border-radius: 8px; margin: 25px 0; border: 2px dashed #667eea;">
+              <span style="font-size: 36px; font-weight: bold; color: #667eea; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</span>
+            </div>
+            
+            <p style="color: #999; font-size: 14px; line-height: 1.8; margin: 20px 0;">
+              ⏱️ 验证码有效期：<strong style="color: #667eea;">{expireTime} 秒</strong><br>
+              💡 请在群内输入此验证码完成验证
+            </p>
+            
+            <!-- 提示信息 -->
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 4px;">
+              <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.6;">
+                ⚠️ 温馨提示：如果这不是您的操作，请忽略此邮件。请勿将验证码泄露给他人。
+              </p>
+            </div>
+          </div>
+          
+          <!-- 底部 -->
+          <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+            <p style="color: #999; font-size: 12px; margin: 0; line-height: 1.6;">
+              此邮件由系统自动发送，请勿回复<br>
+              © 2024 椰奶机器人
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
 
 groupAddNotice:
   openGroup:

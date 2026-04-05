@@ -261,5 +261,21 @@ export default [
     label: "最多允许尝试次数",
     bottomHelpMessage: "邮箱验证码错误次数上限",
     component: "InputNumber"
+  },
+  {
+    field: "groupAdmin.groupVerify.emailVerify.emailSubject",
+    label: "邮件主题",
+    bottomHelpMessage: "支持变量：{groupId}, {groupName}",
+    component: "Input"
+  },
+  {
+    field: "groupAdmin.groupVerify.emailVerify.emailTemplate",
+    label: "HTML邮件模板",
+    bottomHelpMessage: "支持变量：{code}, {groupId}, {groupName}, {userId}, {expireTime}。留空使用默认模板。",
+    component: "GTextarea",
+    componentProps: {
+      placeholder: "自定义HTML邮件模板，支持变量替换",
+      rows: 10
+    }
   }
 ]
