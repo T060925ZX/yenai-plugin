@@ -256,7 +256,7 @@ async function handleEmailVerify(e, verifyData) {
   } else if (userInput) {
     // 如果发送的不是验证码格式的消息，撤回并警告
     await e.group.recallMsg(e.message_id)
-    const msg = `\n⚠️ 请注意！\n当前正在进行邮箱验证\n请发送收到的6位数字验证码\n不要发送其他内容\n💡验证码可以在QQ搜索QQ邮箱中查看`
+    const msg = `\n⚠️ 请注意！\n当前正在进行邮箱验证\n请发送收到的6位数字验证码\n不要发送其他内容\n验证码可以在QQ搜索QQ邮箱中查看`
     return await sendMsg(e, [ segment.at(e.user_id), msg ])
   }
 }
