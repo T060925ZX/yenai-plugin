@@ -189,5 +189,77 @@ export default [
     label: "延迟发送验证时间",
     bottomHelpMessage: "收到进群事件后延迟多少秒再发送验证信息(秒) 确保验证消息在最下面",
     component: "InputNumber"
+  },
+  {
+    field: "groupAdmin.groupVerify.verifyType",
+    label: "验证类型",
+    bottomHelpMessage: "选择入群验证的方式",
+    component: "RadioGroup",
+    required: true,
+    componentProps: {
+      options: [
+        { label: "数学计算", value: "math" },
+        { label: "邮箱验证码", value: "email" }
+      ]
+    }
+  },
+  {
+    component: "Divider",
+    label: "SMTP邮件服务配置"
+  },
+  {
+    field: "groupAdmin.groupVerify.smtpConfig.host",
+    label: "SMTP服务器地址",
+    bottomHelpMessage: "QQ邮箱: smtp.qq.com, 163邮箱: smtp.163.com, Gmail: smtp.gmail.com",
+    component: "Input",
+    required: true
+  },
+  {
+    field: "groupAdmin.groupVerify.smtpConfig.port",
+    label: "SMTP端口",
+    bottomHelpMessage: "SSL端口通常为465或587",
+    component: "InputNumber",
+    required: true
+  },
+  {
+    field: "groupAdmin.groupVerify.smtpConfig.secure",
+    label: "使用SSL连接",
+    component: "Switch"
+  },
+  {
+    field: "groupAdmin.groupVerify.smtpConfig.user",
+    label: "发件人邮箱地址",
+    bottomHelpMessage: "用于发送验证码的邮箱",
+    component: "Input",
+    required: true
+  },
+  {
+    field: "groupAdmin.groupVerify.smtpConfig.pass",
+    label: "邮箱授权码",
+    bottomHelpMessage: "不是登录密码，需要在邮箱设置中获取授权码",
+    component: "InputPassword",
+    required: true
+  },
+  {
+    field: "groupAdmin.groupVerify.smtpConfig.fromName",
+    label: "发件人显示名称",
+    bottomHelpMessage: "收件人看到的发件人名称",
+    component: "Input"
+  },
+  {
+    component: "Divider",
+    label: "邮箱验证码配置"
+  },
+  {
+    field: "groupAdmin.groupVerify.emailVerify.codeLength",
+    label: "验证码长度",
+    bottomHelpMessage: "邮箱验证码的数字位数",
+    component: "InputNumber"
+  },
+  {
+    field: "groupAdmin.groupVerify.emailVerify.maxAttempts",
+    label: "最多允许尝试次数",
+    bottomHelpMessage: "邮箱验证码错误次数上限",
+    component: "InputNumber"
   }
 ]

@@ -33,7 +33,10 @@ groupVerify:
     254974507: ✅ 验证成功，欢迎入群，群里有非常多的大佬给你透哦~~
     0: ✅ 验证成功，欢迎入群
 
-  # 答案验证模式，可选：精确、模糊
+  # 验证类型：math(数学计算) | email(邮箱验证码)
+  verifyType: math
+  
+  # 答案验证模式，可选：精确、模糊（仅对数学计算模式有效）
   mode: 精确
   # 最多允许尝试次数
   times: 7
@@ -41,12 +44,34 @@ groupVerify:
   remindAtLastMinute: true
   # 超时时长（秒），建议至少一分钟（60 秒）
   time: 300
-  # 随机算式的数字的随机范围
+  # 随机算式的数字的随机范围（仅对数学计算模式有效）
   range:
     min: 10
     max: 100
   #收到进群事件后延迟多少秒再发送验证信息(秒)
   DelayTime: 2
+  
+  # SMTP邮件服务配置
+  smtpConfig:
+    # SMTP服务器地址（QQ邮箱: smtp.qq.com, 163邮箱: smtp.163.com, Gmail: smtp.gmail.com）
+    host: "smtp.qq.com"
+    # SMTP端口（SSL端口通常为465或587）
+    port: 465
+    # 是否使用SSL连接
+    secure: true
+    # 发件人邮箱地址
+    user: "your-email@qq.com"
+    # 邮箱授权码（不是登录密码，需要在邮箱设置中获取）
+    pass: "your-authorization-code"
+    # 发件人显示名称
+    fromName: "椰奶机器人"
+  
+  # 邮箱验证码配置
+  emailVerify:
+    # 验证码长度
+    codeLength: 6
+    # 最多允许尝试次数
+    maxAttempts: 5
 
 groupAddNotice:
   openGroup:
