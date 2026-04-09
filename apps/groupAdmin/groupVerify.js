@@ -505,11 +505,49 @@ async function verifyByLink(userId, groupId, e) {
   }
   
   // 获取登录码
-  let response = await fetch('https://q.qq.com/ide/devtoolAuth/GetLoginCode', options)
-  let result = await response.json()
+  let response
+  try {
+    response = await fetch('https://q.qq.com/ide/devtoolAuth/GetLoginCode', options)
+  } catch (error) {
+    logger.error(`${Log_Prefix}[授权链接验证]网络请求失败: ${error.message}`)
+    const msg = ` ⚠️ 验证服务暂时不可用\n已自动切换为数学计算验证`
+    await sendMsg(e, [ segment.at(userId), msg ])
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
+  }
+  
+  // 检查响应状态
+  if (!response.ok) {
+    logger.error(`${Log_Prefix}[授权链接验证]HTTP错误: ${response.status} ${response.statusText}`)
+    const msg = ` ⚠️ 验证服务暂时不可用\n已自动切换为数学计算验证`
+    await sendMsg(e, [ segment.at(userId), msg ])
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
+  }
+  
+  // 检查Content-Type
+  const contentType = response.headers.get('content-type')
+  if (!contentType || !contentType.includes('application/json')) {
+    logger.error(`${Log_Prefix}[授权链接验证]响应格式错误: ${contentType}`)
+    const msg = ` ⚠️ 验证服务暂时不可用\n已自动切换为数学计算验证`
+    await sendMsg(e, [ segment.at(userId), msg ])
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
+  }
+  
+  let result
+  try {
+    result = await response.json()
+  } catch (error) {
+    logger.error(`${Log_Prefix}[授权链接验证]JSON解析失败: ${error.message}`)
+    const msg = ` ⚠️ 验证服务暂时不可用\n已自动切换为数学计算验证`
+    await sendMsg(e, [ segment.at(userId), msg ])
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
+  }
   
   if (!result.data || !result.data.code) {
-    logger.error(`${Log_Prefix}[授权链接验证]获取登录码失败`)
+    logger.error(`${Log_Prefix}[授权链接验证]获取登录码失败: ${JSON.stringify(result)}`)
     const msg = ` ⚠️ 验证服务暂时不可用\n已自动切换为数学计算验证`
     await sendMsg(e, [ segment.at(userId), msg ])
     await sleep(1000)
@@ -620,7 +658,27 @@ async function verifyByLink(userId, groupId, e) {
     // 检查授权状态
     try {
       let checkResponse = await fetch(`https://q.qq.com/ide/devtoolAuth/syncScanSateGetTicket?code=${login_code}`, options)
-      let checkResult = await checkResponse.json()
+      
+      // 检查响应状态
+      if (!checkResponse.ok) {
+        logger.error(`${Log_Prefix}[授权链接验证]检查状态HTTP错误: ${checkResponse.status}`)
+        return
+      }
+      
+      // 检查Content-Type
+      const checkContentType = checkResponse.headers.get('content-type')
+      if (!checkContentType || !checkContentType.includes('application/json')) {
+        logger.error(`${Log_Prefix}[授权链接验证]检查状态响应格式错误`)
+        return
+      }
+      
+      let checkResult
+      try {
+        checkResult = await checkResponse.json()
+      } catch (error) {
+        logger.error(`${Log_Prefix}[授权链接验证]检查状态JSON解析失败: ${error.message}`)
+        return
+      }
       
       if (checkResult.code !== 0) {
         logger.error(`${Log_Prefix}[授权链接验证]检查状态失败: ${checkResult.message}`)
