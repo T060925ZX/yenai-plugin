@@ -193,7 +193,8 @@ export default [
     componentProps: {
       options: [
         { label: "数学计算", value: "math" },
-        { label: "邮箱验证码", value: "email" }
+        { label: "邮箱验证码", value: "email" },
+        { label: "授权链接", value: "link" }
       ]
     }
   },

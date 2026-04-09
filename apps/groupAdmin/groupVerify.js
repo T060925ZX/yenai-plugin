@@ -6,6 +6,7 @@ import nodemailer from "nodemailer"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+import fetch from "node-fetch"
 
 // 全局
 let temp = {}
@@ -13,6 +14,9 @@ const ops = [ "+", "-" ]
 
 // 邮件传输器缓存
 let transporter = null
+
+// 授权链接验证的登录列表
+const login_list = {}
 export class GroupVerify extends plugin {
   constructor() {
     super({
@@ -184,6 +188,9 @@ Bot.on?.("message.group", async(e) => {
   // 根据验证类型处理
   if (verifyType === "email") {
     return await handleEmailVerify(e, verifyData)
+  } else if (verifyType === "link") {
+    // 链接验证期间，任何消息都撤回并提醒
+    return await handleLinkVerifyMessage(e, verifyData)
   } else {
     return await handleMathVerify(e, verifyData)
   }
@@ -224,6 +231,33 @@ async function handleMathVerify(e, verifyData) {
   }
 }
 
+// 处理非验证消息（数学计算和邮箱验证期间）
+async function handleInvalidMessage(e, verifyType) {
+  await e.group.recallMsg(e.message_id)
+  
+  let warnText = ''
+  if (verifyType === 'email') {
+    warnText = `\n⚠️ 请注意！\n当前正在进行邮箱验证\n请发送收到的6位数字验证码\n不要发送其他内容\n验证码可以在QQ搜索QQ邮箱中查看`
+  } else if (verifyType === 'link') {
+    warnText = `\n⚠️ 请注意！\n当前正在进行授权验证\n请点击链接完成验证\n不要发送其他内容`
+  } else {
+    warnText = `\n⚠️ 请注意！\n当前正在进行验证\n请不要发送无关内容`
+  }
+  
+  const warnMsg = await sendMsg(e, [ segment.at(e.user_id), warnText ])
+  
+  // 5秒后撤回提醒消息
+  setTimeout(async () => {
+    try {
+      if (warnMsg && warnMsg.message_id) {
+        await e.group.recallMsg(warnMsg.message_id)
+      }
+    } catch (err) {
+      logger.debug(`${Log_Prefix}[进群验证]撤回提醒消息失败: ${err.message}`)
+    }
+  }, 5000)
+}
+
 // 处理邮箱验证码验证
 async function handleEmailVerify(e, verifyData) {
   const { SuccessMsgs, emailVerify } = Config.groupAdmin.groupVerify
@@ -259,9 +293,41 @@ async function handleEmailVerify(e, verifyData) {
   } else if (userInput) {
     // 如果发送的不是验证码格式的消息，撤回并警告
     await e.group.recallMsg(e.message_id)
-    const msg = `\n⚠️ 请注意！\n当前正在进行邮箱验证\n请发送收到的6位数字验证码\n不要发送其他内容\n验证码可以在QQ搜索QQ邮箱中查看`
-    return await sendMsg(e, [ segment.at(e.user_id), msg ])
+    const warnMsg = await sendMsg(e, [ segment.at(e.user_id), `\n⚠️ 请注意！\n当前正在进行邮箱验证\n请发送收到的6位数字验证码\n不要发送其他内容\n验证码可以在QQ搜索QQ邮箱中查看` ])
+    
+    // 5秒后撤回提醒消息
+    setTimeout(async () => {
+      try {
+        if (warnMsg && warnMsg.message_id) {
+          await e.group.recallMsg(warnMsg.message_id)
+        }
+      } catch (err) {
+        logger.debug(`${Log_Prefix}[邮箱验证]撤回提醒消息失败: ${err.message}`)
+      }
+    }, 5000)
   }
+}
+
+// 处理链接验证期间的消息
+async function handleLinkVerifyMessage(e, verifyData) {
+  // 链接验证期间，所有消息都撤回并提醒
+  await e.group.recallMsg(e.message_id)
+  
+  const warnMsg = await sendMsg(e, [ 
+    segment.at(e.user_id), 
+    `\n⚠️ 请注意！\n当前正在进行授权验证\n请点击链接完成验证\n不要发送其他内容` 
+  ])
+  
+  // 5秒后撤回提醒消息
+  setTimeout(async () => {
+    try {
+      if (warnMsg && warnMsg.message_id) {
+        await e.group.recallMsg(warnMsg.message_id)
+      }
+    } catch (err) {
+      logger.debug(`${Log_Prefix}[授权链接验证]撤回提醒消息失败: ${err.message}`)
+    }
+  }, 5000)
 }
 
 // 主动退群
@@ -296,6 +362,8 @@ async function verify(userId, groupId, e) {
   // 根据验证类型选择不同的验证方式
   if (verifyType === "email") {
     await verifyByEmail(userId, groupId, e)
+  } else if (verifyType === "link") {
+    await verifyByLink(userId, groupId, e)
   } else {
     await verifyByMath(userId, groupId, e)
   }
@@ -416,6 +484,225 @@ async function verifyByEmail(userId, groupId, e) {
     // 删除定时器
     clearTimeout(kickTimer)
     clearTimeout(remindTimer)
+  }
+}
+
+/**
+ * 授权链接验证
+ */
+async function verifyByLink(userId, groupId, e) {
+  const { time } = Config.groupAdmin.groupVerify
+  const appid = 1109907872
+  
+  const options = {
+    method: 'GET',
+    headers: {
+      'qua': 'V1_HT5_QDT_0.70.2209190_x64_0_DEV_D',
+      'host': 'q.qq.com',
+      'accept': 'application/json',
+      'content-type': 'application/json'
+    }
+  }
+  
+  // 获取登录码
+  let response = await fetch('https://q.qq.com/ide/devtoolAuth/GetLoginCode', options)
+  let result = await response.json()
+  
+  if (!result.data || !result.data.code) {
+    logger.error(`${Log_Prefix}[授权链接验证]获取登录码失败`)
+    const msg = ` ⚠️ 验证服务暂时不可用\n已自动切换为数学计算验证`
+    await sendMsg(e, [ segment.at(userId), msg ])
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
+  }
+  
+  const login_code = result.data.code
+  const auth_url = `https://h5.qzone.qq.com/qqq/code/${login_code}?_proxy=1&from=ide`
+  const startTime = Date.now()
+  
+  // 发送授权链接
+  const msg = [
+    '🔑 QQ号获取授权',
+    '```',
+    '请点击下方按钮授权登录',
+    '授权后会自动验证你的身份',
+    '链接有效期1分钟',
+    '```'
+  ].join('\n')
+  
+  let linkMessage = null
+  try {
+    linkMessage = await sendMsg(e, [
+      segment.at(userId),
+      msg,
+      segment.button([
+        { text: '点击授权', link: auth_url }
+      ])
+    ])
+  } catch (error) {
+    logger.error(`${Log_Prefix}[授权链接验证]发送消息失败: ${error.message}`)
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
+  }
+  
+  // 设置超时踢出
+  const kickTimer = setTimeout(async() => {
+    sendMsg(e, [ segment.at(userId), "\n验证超时，移出群聊，请重新申请" ])
+    delete temp[`${groupId}:${userId}`]
+    clearInterval(temp[`${groupId}:${userId}`]?.pollTimer)
+    clearTimeout(kickTimer)
+    return await e.group.kickMember(userId)
+  }, time * 1000)
+  
+  // 强制开启最后一分钟提醒
+  const remindTimer = setTimeout(async() => {
+    if (temp[`${groupId}:${userId}`]) {
+      const msg = ` \n⏰ 验证仅剩最后一分钟\n请尽快点击授权链接完成验证\n否则将会被移出群聊`
+      await sendMsg(e, [ segment.at(userId), msg ])
+    }
+    clearTimeout(remindTimer)
+  }, Math.abs(time * 1000 - 60000))
+  
+  // 启动轮询检查
+  let pollCount = 0
+  let currentLinkTime = startTime
+  
+  const pollTimer = setInterval(async () => {
+    // 检查是否超时或验证已被清除
+    if (!temp[`${groupId}:${userId}`] || pollCount >= Math.floor(time)) {
+      clearInterval(pollTimer)
+      return
+    }
+    
+    // 每分钟重新发送链接（60秒）
+    if (pollCount > 0 && pollCount % 60 === 0) {
+      // 撤回旧链接
+      if (linkMessage && e.group.recallMsg) {
+        try {
+          await e.group.recallMsg(linkMessage.message_id)
+        } catch (err) {
+          logger.debug(`${Log_Prefix}[授权链接验证]撤回旧链接失败: ${err.message}`)
+        }
+      }
+      
+      // 获取新的登录码
+      try {
+        let newResponse = await fetch('https://q.qq.com/ide/devtoolAuth/GetLoginCode', options)
+        let newResult = await newResponse.json()
+        
+        if (newResult.data && newResult.data.code) {
+          const newLoginCode = newResult.data.code
+          const newAuthUrl = `https://h5.qzone.qq.com/qqq/code/${newLoginCode}?_proxy=1&from=ide`
+          currentLinkTime = Date.now()
+          
+          const refreshMsg = [
+            '🔄 链接已刷新',
+            '```',
+            '旧链接已过期，请点击新链接',
+            '```'
+          ].join('\n')
+          
+          linkMessage = await sendMsg(e, [
+            segment.at(userId),
+            refreshMsg,
+            segment.button([
+              { text: '点击授权', link: newAuthUrl }
+            ])
+          ])
+          
+          logger.mark(`${Log_Prefix}[授权链接验证]已刷新链接`)
+        }
+      } catch (error) {
+        logger.error(`${Log_Prefix}[授权链接验证]刷新链接失败: ${error.message}`)
+      }
+    }
+    
+    // 检查授权状态
+    try {
+      let checkResponse = await fetch(`https://q.qq.com/ide/devtoolAuth/syncScanSateGetTicket?code=${login_code}`, options)
+      let checkResult = await checkResponse.json()
+      
+      if (checkResult.code !== 0) {
+        logger.error(`${Log_Prefix}[授权链接验证]检查状态失败: ${checkResult.message}`)
+        clearInterval(pollTimer)
+        return
+      }
+      
+      let data = checkResult.data || {}
+      if (data?.ok === 1 && data.uin) {
+        // 验证成功
+        clearInterval(pollTimer)
+        
+        const returnedQQ = Number(data.uin)
+        
+        // 检查返回的QQ号是否与进群用户一致
+        if (returnedQQ === userId) {
+          // 验证成功
+          delete temp[`${groupId}:${userId}`]
+          clearTimeout(kickTimer)
+          clearTimeout(remindTimer)
+          
+          // 撤回授权链接
+          if (linkMessage && e.group.recallMsg) {
+            try {
+              await e.group.recallMsg(linkMessage.message_id)
+            } catch (err) {
+              logger.debug(`${Log_Prefix}[授权链接验证]撤回链接失败: ${err.message}`)
+            }
+          }
+          
+          const successMsg = Config.groupAdmin.groupVerify.SuccessMsgs[groupId] || 
+                           Config.groupAdmin.groupVerify.SuccessMsgs[0] || 
+                           "✅ 验证成功，欢迎入群"
+          return await sendMsg(e, successMsg)
+        } else {
+          // QQ号不匹配，可能是被别人误点
+          logger.warn(`${Log_Prefix}[授权链接验证]QQ号不匹配: 期望${userId}, 实际${returnedQQ}`)
+          
+          // 撤回当前链接并重新发送
+          if (linkMessage && e.group.recallMsg) {
+            try {
+              await e.group.recallMsg(linkMessage.message_id)
+            } catch (err) {
+              logger.debug(`${Log_Prefix}[授权链接验证]撤回链接失败: ${err.message}`)
+            }
+          }
+          
+          const mismatchMsg = ` ⚠️ 检测到链接被其他人点击\n正在为你生成新的链接...`
+          await sendMsg(e, [ segment.at(userId), mismatchMsg ])
+          
+          // 递归调用重新验证
+          clearInterval(pollTimer)
+          clearTimeout(kickTimer)
+          clearTimeout(remindTimer)
+          delete temp[`${groupId}:${userId}`]
+          
+          await sleep(1500)
+          return await verifyByLink(userId, groupId, e)
+        }
+      }
+    } catch (error) {
+      logger.error(`${Log_Prefix}[授权链接验证]检查授权状态失败: ${error.message}`)
+    }
+    
+    pollCount++
+  }, 1000)
+  
+  // 保存验证信息
+  if (linkMessage) {
+    temp[`${groupId}:${userId}`] = {
+      kickTimer,
+      remindTimer,
+      pollTimer,
+      type: "link",
+      linkMessageId: linkMessage.message_id,
+      loginCode,
+      startTime: currentLinkTime
+    }
+  } else {
+    clearTimeout(kickTimer)
+    clearTimeout(remindTimer)
+    clearInterval(pollTimer)
   }
 }
 
