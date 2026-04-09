@@ -305,7 +305,7 @@ async function verify(userId, groupId, e) {
  * 数学计算验证
  */
 async function verifyByMath(userId, groupId, e) {
-  const { times, range, time, remindAtLastMinute } = Config.groupAdmin.groupVerify
+  const { times, range, time } = Config.groupAdmin.groupVerify
   const operator = ops[_.random(0, 1)]
 
   let [ m, n ] = [ _.random(range.min, range.max), _.random(range.min, range.max) ]
@@ -327,12 +327,10 @@ async function verifyByMath(userId, groupId, e) {
     return await e.group.kickMember(userId)
   }, time * 1000)
 
-  const shouldRemind = remindAtLastMinute && time >= 120
-
+  // 强制开启最后一分钟提醒（仅当超时时间 >= 120 秒时）
   const remindTimer = setTimeout(async() => {
-    if (shouldRemind && temp[`${groupId}:${userId}`].remindTimer) {
-      const msg = ` \n验证仅剩最后一分钟\n请发送「${m} ${operator} ${n}」的运算结果\n否则将会被移出群聊`
-
+    if (temp[`${groupId}:${userId}`]) {
+      const msg = ` \n⏰ 验证仅剩最后一分钟\n请发送「${m} ${operator} ${n}」的运算结果\n否则将会被移出群聊`
       await sendMsg(e, [ segment.at(userId), msg ])
     }
     clearTimeout(remindTimer)
@@ -375,9 +373,15 @@ async function verifyByEmail(userId, groupId, e) {
     await sendVerificationEmail(userEmail, verifyCode, userId, groupId)
   } catch (error) {
     logger.error(`${Log_Prefix}[邮箱验证]发送邮件失败: ${error.message}`)
-    const msg = ` 欢迎！\n验证码发送失败，请联系管理员\n错误信息：${error.message}`
-    await sendMsg(e, [ segment.at(userId), msg ])
-    return
+    logger.warn(`${Log_Prefix}[邮箱验证]自动降级为数学计算验证`)
+    
+    // 通知用户
+    const fallbackMsg = ` ⚠️ 邮件发送失败\n已自动切换为数学计算验证`
+    await sendMsg(e, [ segment.at(userId), fallbackMsg ])
+    
+    // 降级到数学计算验证
+    await sleep(1000)
+    return await verifyByMath(userId, groupId, e)
   }
   
   // 设置超时踢出
@@ -388,6 +392,15 @@ async function verifyByEmail(userId, groupId, e) {
     return await e.group.kickMember(userId)
   }, time * 1000)
   
+  // 强制开启最后一分钟提醒（仅当超时时间 >= 120 秒时）
+  const remindTimer = setTimeout(async() => {
+    if (temp[`${groupId}:${userId}`]) {
+      const msg = ` \n⏰ 验证仅剩最后一分钟\n请尽快输入收到的6位验证码\n否则将会被移出群聊\n💡在QQ搜索"QQ邮箱"查看`
+      await sendMsg(e, [ segment.at(userId), msg ])
+    }
+    clearTimeout(remindTimer)
+  }, Math.abs(time * 1000 - 60000))
+  
   const msg = ` 欢迎！\n验证码已发送至：${userEmail}\n请在「${time}」秒内输入验证码\n否则将会被移出群聊\n💡验证码在QQ搜索 QQ邮箱 中查看`
   
   // 消息发送成功才写入
@@ -395,13 +408,14 @@ async function verifyByEmail(userId, groupId, e) {
     temp[`${groupId}:${userId}`] = {
       verifyCode,
       kickTimer,
-      remindTimer: null,
+      remindTimer,
       attempts: 0,
       type: "email"
     }
   } else {
     // 删除定时器
     clearTimeout(kickTimer)
+    clearTimeout(remindTimer)
   }
 }
 

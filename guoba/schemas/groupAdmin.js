@@ -163,15 +163,9 @@ export default [
     component: "InputNumber"
   },
   {
-    field: "groupAdmin.groupVerify.remindAtLastMinute",
-    label: "最后一分钟提醒",
-    bottomHelpMessage: "仅在超时时长大于等于 120 秒时有效",
-    component: "Switch"
-  },
-  {
     field: "groupAdmin.groupVerify.time",
     label: "超时时长",
-    bottomHelpMessage: "单位：秒，建议至少一分钟（60 秒）",
+    bottomHelpMessage: "单位：秒，建议至少一分钟（60 秒）。如果 >= 120 秒，将自动在最后一分钟提醒",
     component: "InputNumber"
   },
   {
